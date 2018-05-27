@@ -19,12 +19,11 @@ contexts:
 
     - match: '\b(sql_table_name|sql_on|sql)\b(: )'
       captures:
-        1: keyword.control.looker
-        2: punctuation.separator.looker
+        1: variable.parameter.looker
       push: sql
 
     - match: '\bhtml\b'
-      scope: keyword.control.looker
+      scope: variable.parameter.looker
       push: html
 
     - include: keywords
@@ -36,28 +35,47 @@ contexts:
 
 
   keywords:
-    - match: '\b(?i)(explore|view)\b'
-      scope: entity.name.looker
-
-    - match: '\b(?i)(filter|parameter|dimension|dimension_group|measure|set)\b: ([A-Za-z0-9_-]+) {'
-      captures: 
+    - match: '\b(?i)(explore|view|filter|parameter|dimension|dimension_group|measure|set)\b: ([A-Za-z0-9_-]+) {'
+      captures:
         1: entity.name.looker
         2: storage.type.looker
 
-    - match: '\b(?i)(label|view_label|group_label|description|label_from_parameter)\b'
-      scope: keyword.control.looker
+    - match: '\b(?i)(extends|extension|include|local_dependency|project_name)\b(: )'
+      captures:
+        1: variable.parameter.looker
 
-    - match: '\b(?i)(allowed_value|type|timeframes|convert_tz|datatype|hidden|value_format_name|drill_fields|filters|fields)\b'
-      scope: keyword.control.looker
+    - match: '\b(?i)(label|view_label|group_label|description|label_from_parameter)\b(: )'
+      captures:
+        1: variable.parameter.looker
 
-    - match: '\b(?i)(field|value)\b'
-      scope: keyword.control.looker
+    - match: '\b(?i)(convert_tz|datatype|fiscal_month_offset|week_start_day)\b(: )'
+      captures:
+        1: variable.parameter.looker
+
+    - match: '\b(?i)(start_location_field|end_location_field|units|sql_latitude|sql_longitude)\b(: )'
+      captures:
+        1: variable.parameter.looker
+
+    - match: '\b(?i)(allowed_value|case|type|timeframes|hidden|value_format_name|drill_fields|filters|fields|tiers)\b(: )'
+      captures:
+        1: variable.parameter.looker
+
+    - match: '\b(?i)(field|value)\b(: )'
+      captures:
+        1: variable.parameter.looker
+
+    - match: '\b(?i)(link|action|tags)\b(: )'
+      captures:
+        1: variable.parameter.looker
 
     - match: '\b(string|unquoted|number|date|time|datetime|yesno)\b'
       scope: storage.type.looker
 
     - match: '\b(count|count_distinct|sum|average|median)\b'
       scope: storage.type.function.looker
+
+    - match: '\b(gbp|gbp_0|usd|usd_0|percent_0|percent_1|percent_2)\b'
+      scope: storage.type.looker
 
 
   strings:
@@ -100,13 +118,14 @@ contexts:
   sql:
     - clear_scopes: true
     - include: variables
+    - include: numbers
     - include: strings
     - meta_scope: string.looker
 
     - match: (\-|\+|\*|\/|%\/%|%%|\^|\|\|)
       scope: keyword.operator.arithmetic.looker
 
-    - match: (=|!=|<>|<|>|<=|>=)
+    - match: (=|!=|<>|<|>|<=|>=|AND|OR)
       scope: keyword.operator.comparison.looker
 
     - match: '(?i)\b(CASE|WHEN|THEN|ELSE|END)\b'
@@ -118,13 +137,13 @@ contexts:
     - match: '\b(?i)(TRUE|FALSE|NULL|PI)\b'
       scope: constant.language.looker
 
-    - match: '(?i)\b(CURRENT\_?DATE|DATE\_?ADD|DATE\_?DIFF|DATE\_?NAME|DATE\_?PART|DATETIME|DATE\_?TRUNC|EXTRACT|FROM|TIMESTAMP)\b'
+    - match: '(?i)\b(CURRENT\_?DATE|DATE\_?ADD|DATE\_?DIFF|DATE\_?NAME|DATE\_?PART|DATETIME|DATE\_?TRUNC|EXTRACT|FROM|TIMESTAMP|DATE_FROM_PARTS)\b'
       scope: variable.function.looker
 
     - match: '\b(?i)(hour|day|dayofweek|dayofyear|week|month|year)\b'
       scope: constant.language.looker
 
-    - match: '\-\-'
+    - match: "--"
       scope: comment.looker
       push:
         - meta_scope: comment.looker
@@ -199,8 +218,8 @@ contexts:
       scope: punctuation.definition.variable.begin.looker
       push:
       - meta_scope: string.looker
-      # - match: [a-zA-Z0-9_-]
-      #   scope: storage.type.looker
+      - match: '[a-zA-Z0-9_-]'
+        scope: storage.type.looker
       - match: '\]'
         scope: punctuation.definition.variable.end.looker
         pop: true
