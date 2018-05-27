@@ -125,7 +125,7 @@ contexts:
     - match: (\-|\+|\*|\/|%\/%|%%|\^|\|\|)
       scope: keyword.operator.arithmetic.looker
 
-    - match: (=|!=|<>|<|>|<=|>=|AND|OR)
+    - match: '\b(=|!=|<>|<|>|<=|>=|AND|OR)\b'
       scope: keyword.operator.comparison.looker
 
     - match: '(?i)\b(CASE|WHEN|THEN|ELSE|END)\b'
