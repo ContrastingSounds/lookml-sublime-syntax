@@ -17,7 +17,21 @@ contexts:
         - match: \n
           pop: true
 
-    - match: '\b(sql_table_name|sql_on|sql)\b(: ?)'
+    - include: keywords
+    - include: numbers
+    - include: variables
+    - include: constants
+    - include: double_quoted_strings
+    - include: lists
+
+  keywords:
+    - match: '\b(explore|view|filter|parameter|dimension|dimension_group|measure|set)\b: ([A-Za-z0-9_-]+) ?({)'
+      captures:
+        1: entity.name.looker
+        2: storage.type.looker
+        3: punctuation.definition.end.looker
+
+    - match: '\b(sql_table_name|sql_on|sql_trigger|sql_latitude|sql_longitude|sql)\b(: ?)'
       captures:
         1: variable.parameter.looker
       push: sql
@@ -27,20 +41,15 @@ contexts:
         1: variable.parameter.looker
       push: html
 
-    - include: keywords
-    - include: numbers
-    - include: variables
-    - include: constants
-    - include: strings
-    - include: lists
+    - match: '\b(url|icon_url)\b(: ?)(")'
+      captures: 
+        1: variable.parameter.looker
+      push: url
 
-
-  keywords:
-    - match: '\b(explore|view|filter|parameter|dimension|dimension_group|measure|set)\b: ([A-Za-z0-9_-]+) ?({)'
+    - match: '\b(?!sql_table_name|sql_on|sql|html)([a-z0-9_]+)\b(: ?)([A-Za-z0-9_\-]+ ?)'
       captures:
-        1: entity.name.looker
-        2: storage.type.looker
-        3: punctuation.definition.end.looker
+        1: variable.parameter.looker
+        3: storage.type.looker
 
     - match: '\b(?!sql_table_name|sql_on|sql|html)([a-z0-9_]+)\b(: ?)([A-Za-z0-9_\-]+ ?)'
       captures:
@@ -63,23 +72,25 @@ contexts:
     - match: (})
       scope: punctuation.definition.end.looker
 
-
-  strings:
+  double_quoted_strings:
     - match: '"'
       scope: punctuation.definition.string.begin.looker
       push:
         - meta_scope: string.quoted.double.looker
+        - include: templates
         - match: '"'
           scope: punctuation.definition.string.end.looker
           pop: true
+
+  single_quoted_strings:
     - match: "'"
       scope: punctuation.definition.string.begin.looker
       push:
         - meta_scope: string.quoted.single.looker
+        - include: templates
         - match: "'"
           scope: punctuation.definition.string.end.looker
           pop: true
-
 
   variables:
     - match: '\$\{'
@@ -90,63 +101,15 @@ contexts:
           scope: punctuation.definition.variable.end.looker
           pop: true
 
-
   constants:
     - match: '\b(yes|no)\b'
       scope: constant.language.looker
-
 
   numbers:
     - match: '\b([0-9/.]+)'
       scope: constant.numeric.looker
 
-  # Are all lists for timeframes: and set: ? If so, can markup content of those lists as storage.type.looker
-  lists:
-    - match: '\['
-      scope: punctuation.definition.begin.looker
-      push:
-      - meta_scope: string.list.looker
-      - match: '[a-zA-Z0-9_-]'
-        scope: storage.type.list.looker
-      - match: '\]'
-        scope: punctuation.definition.end.looker
-        pop: true
-
-  sql:
-    - clear_scopes: true
-    - include: variables
-    - include: numbers
-    - include: strings
-    - meta_scope: string.sql.looker
-
-    - match: (\-|\+|\*|\/|%\/%|%%|\^|\|\|)
-      scope: keyword.operator.arithmetic.looker
-
-    - match: '\b(=|!=|<>|<|>|<=|>=|AND|OR|IS|NOT)\b'
-      scope: keyword.operator.comparison.looker
-
-    - match: '(?i)\b(CASE|WHEN|THEN|ELSE|END)\b'
-      scope: keyword.control.sql.looker
-
-    - match: '(?i)\b(ABS|ACOS|ASCII|ASIN|ATAN|ATAN2|AVG|CEILING|COS|COT|COUNT|COUNTD|DEGREES|DIV|EXP|FLOAT|FLOOR|HEXBINX|HEXBINY|INT|LN|LOG|MAX|MIN|NOW|NULLIF|POWER|RADIANS|ROUND|RUNNING_AVG|RUNNING_COUNT|RUNNING_MAX|RUNNING_MIN|RUNNING_SUM|SIGN|SIN|SQRT|SQUARE|STDEV|STDEVP|SUM|TAN|TOTAL|VAR|VARP|WINDOW_AVG|WINDOW_COUNT|WINDOW_MAX|WINDOW_MEDIAN|WINDOW_MIN|WINDOW_PERCENTILE|WINDOW_STDEV|WINDOW_STDEVP|WINDOW_SUM|WINDOW_VAR|WINDOW_VARP|YEAR|ATTR|CHAR|CONTAINS|ENDSWITH|EXCLUDE|FIND|FIRST|FIXED|FULLNAME|IFNULL|INCLUDE|INDEX|ISDATE|ISFULLNAME|ISMEMBEROF|ISNULL|ISUSERNAME|LAST|LEFT|LEN|LOOKUP|LOWER|LTRIM|MID|PREVIOUS_VALUE|RANK|RANK_DENSE|RANK_MODIFIED_RANK_PERCENTILE|RANK_UNIQUE|RAWSQLAGG_BOOL|RAWSQLAGG_DATE|RAWSQLAGG_DATETIME|RAWSQLAGG_INT|RAWSQLAGG_REAL|RAWSQLAGG_STR|RAWSQL_BOOL|RAWSQL_DATE|RAWSQL_DATETIME|RAWSQL_INT|RAWSQL_REAL|RAWSQL_STR|REPLACE|RIGHT|RTRIM|SCRIPT_BOOL|SCRIPT_INT|SCRIPT_REAL|SCRIPT_STR|SIZE|SPACE|SPLIT|STARTSWITH|STR|TODAY|TRIM|UPPER|USERDOMAIN|USERNAME|ZN)\b'
-      scope: variable.function.sql.looker
-
-    - match: '\b(?i)(TRUE|FALSE|NULL|PI)\b'
-      scope: constant.language.sql.looker
-
-    - match: '(?i)\b(CURRENT\_?DATE|DATE\_?ADD|DATE\_?DIFF|DATE\_?NAME|DATE\_?PART|DATETIME|DATE\_?TRUNC|EXTRACT|FROM|TIMESTAMP|DATE_FROM_PARTS)\b'
-      scope: variable.function.sql.looker
-
-    - match: '\b(?i)(hour|day|dayofweek|dayofyear|week|month|year)\b'
-      scope: constant.language.sql.looker
-
-    - match: '\-\-'
-      scope: comment.sql.looker
-      push:
-        - meta_scope: comment.sql.looker
-        - match: '\n'
-          pop: true
-
+  templates:
     - match: '\{\%'
       scope: punctuation.separator.looker
       push: liquid_control
@@ -155,14 +118,74 @@ contexts:
       scope: punctuation.separator.liquid.looker
       push: liquid_variable
 
+  # LISTS
+  lists:
+    - match: '\['
+      scope: punctuation.definition.begin.looker
+      push:
+      - meta_scope: string.list.looker
+      - match: '#'
+        scope: comment.looker
+        push:
+          - meta_scope: comment.looker
+          - match: \n
+            pop: true
+      - match: '[a-zA-Z0-9_-]'
+        scope: storage.type.list.looker
+      - match: '\]'
+        scope: punctuation.definition.end.looker
+        pop: true
+
+  # SQL
+  sql:
+    - clear_scopes: true
+    - include: variables
+    - include: numbers
+    - include: double_quoted_strings
+    - include: single_quoted_strings
+    - include: templates
+    - meta_scope: string.sql.looker
+
+    - match: '\-\-'
+      scope: comment.sql.looker
+      push:
+        - meta_scope: comment.sql.looker
+        - match: '\n'
+          pop: true
+
+    - match: (\-|\+|\*|\/|%\/%|%%|\^|\|\|)
+      scope: keyword.operator.arithmetic.looker
+
+    - match: '(=|!=|<>|<|>|<=|>=|AND|OR|IS|NOT)'
+      scope: keyword.operator.comparison.looker
+
+    - match: '(?i)\b(SELECT|AS|FROM|WHERE|GROUP BY|ORDER BY|HAVING|LEFT|JOIN|ON)\b'
+      scope: keyword.control.sql.looker
+
+    - match: '(?i)\b(CASE|WHEN|IN|THEN|ELSE|END)\b'
+      scope: keyword.control.sql.looker
+
+    - match: '(?i)\b(ABS|ACOS|ASCII|ASIN|ATAN|ATAN2|AVG|CEILING|COALESCE|COS|COT|COUNT|COUNTD|DEGREES|DIV|EXP|FLOAT|FLOOR|HEXBINX|HEXBINY|INT|LN|LOG|MAX|MIN|NOW|NULLIF|OVER|PARTITION BY|POWER|RADIANS|ROUND|RUNNING_AVG|RUNNING_COUNT|RUNNING_MAX|RUNNING_MIN|RUNNING_SUM|SIGN|SIN|SQRT|SQUARE|STDEV|STDEVP|SUM|TAN|TOTAL|VAR|VARP|WINDOW_AVG|WINDOW_COUNT|WINDOW_MAX|WINDOW_MEDIAN|WINDOW_MIN|WINDOW_PERCENTILE|WINDOW_STDEV|WINDOW_STDEVP|WINDOW_SUM|WINDOW_VAR|WINDOW_VARP|YEAR|ATTR|CHAR|CONTAINS|ENDSWITH|EXCLUDE|FIND|FIRST|FIXED|FULLNAME|IFNULL|INCLUDE|INDEX|ISDATE|ISFULLNAME|ISMEMBEROF|ISNULL|ISUSERNAME|LAST|LEFT|LEN|LOOKUP|LOWER|LTRIM|MID|PREVIOUS_VALUE|RANK|RANK_DENSE|RANK_MODIFIED_RANK_PERCENTILE|RANK_UNIQUE|RAWSQLAGG_BOOL|RAWSQLAGG_DATE|RAWSQLAGG_DATETIME|RAWSQLAGG_INT|RAWSQLAGG_REAL|RAWSQLAGG_STR|RAWSQL_BOOL|RAWSQL_DATE|RAWSQL_DATETIME|RAWSQL_INT|RAWSQL_REAL|RAWSQL_STR|REPLACE|RIGHT|RTRIM|SCRIPT_BOOL|SCRIPT_INT|SCRIPT_REAL|SCRIPT_STR|SIZE|SPACE|SPLIT|STARTSWITH|STR|TODAY|TRIM|UPPER|USERDOMAIN|USERNAME|ZN)\b'
+      scope: variable.function.sql.looker
+
+    - match: '\b(?i)(TRUE|FALSE|NULL|PI)\b'
+      scope: constant.language.sql.looker
+
+    - match: '(?i)\b(CURRENT\_?DATE|GET\_?DATE|DATE\_?ADD|DATE\_?DIFF|DATE\_?NAME|DATE\_?PART|DATETIME|DATE\_?TRUNC|EXTRACT|FROM|TIMESTAMP|DATE_FROM_PARTS)\b'
+      scope: variable.function.sql.looker
+
+    - match: '\b(?i)(hour|day|dayofweek|dayofyear|week|month|year)\b'
+      scope: constant.language.sql.looker
+
     - match: ';;'
       scope: comment.endofstatement.looker
       pop: true
 
-
+  # HTML
   html:
     - clear_scopes: true
     - meta_scope: text.html.basic.looker
+    - include: templates
 
     - match: '<(/?)([a-zA-Z]+)'
       captures:
@@ -170,22 +193,18 @@ contexts:
         2: entity.name.tag.html.looker
       push: html_tag
 
-    - match: '\{\%'
-      scope: punctuation.separator.liquid.looker
-      push: liquid_control
-
-    - match: '\{\{'
-      scope: punctuation.separator.liquid.looker
-      push: liquid_variable
-
     - match: ';;'
       scope: comment.endofstatement.hmtl.looker
       pop: true
 
-
   html_tag:
     - meta_scope: text.html.looker
     - include: numbers
+
+    - match: '(src|href)(=\")'
+      captures:
+        1: entity.name.tag.attribue.looker
+      push: url
 
     - match: '[a-zA-Z]+'
       scope: entity.name.tag.attribute.looker
@@ -201,6 +220,7 @@ contexts:
   html_tag_attribute_string:
     - clear_scopes: true
     - include: numbers
+    - include: templates
     - meta_scope: string.html.tag.attribute.value.looker
 
     - match: '([a-zA-Z\-]+):'
@@ -214,24 +234,63 @@ contexts:
       scope: punctuation.html.tag.looker
       pop: true
 
+  # URL
+  url:
+    - clear_scopes: true
+    - meta_scope: string.url.looker
+    - include: templates
+
+    - match: (https?:\/\/)
+      captures:
+        1: entity.name.tag.html.looker
+
+    - match: '(\?|\&)([a-zA-Z0-9_]+)(\=)'
+      captures:
+        2: storage.type.url_param.looker
+
+    - match: '"'
+      pop: true
+
+  # LIQUID TEMPLATES
   liquid_control:
     - clear_scopes: true
     - include: numbers
     - meta_scope: variable.function.liquid.control.looker
 
-    - match: '\bparameter\b'
-      scope: keyword.looker
+    - match: \bassign|parameter\b
+      scope: keyword.liquid.looker
 
-    - match: '\b(if|elsif|else|endif|case|when|endcase|condition|endcondition)\b'
-      scope: keyword.control.looker
+    - match: \b(if|elsif|else|endif|unless|endunless|case|when|endcase|condition|endcondition)\b
+      scope: keyword.control.liquid.looker
 
-    - match: (==|!=|<>|<|>|<=|>=|contains)
+    - match: (==|!=|<>|<|>|<=|>=|or|and|contains)
       scope: keyword.operator.comparison.looker
+
+    - match: \b([a-zA-Z0-9_]+)\b
+      scope: storage.type.liquid.looker
+
+    - include: double_quoted_strings
+    - include: single_quoted_strings
+
+    # - match: '"'
+    #   scope: punctuation.definition.string.begin.looker
+    #   push:
+    #     - meta_scope: string.quoted.double.looker
+    #     - match: '"'
+    #       scope: punctuation.definition.string.end.looker
+    #       pop: true
+
+    # - match: "'"
+    #   scope: punctuation.definition.string.begin.looker
+    #   push:
+    #     - meta_scope: string.quoted.single.looker
+    #     - match: "'"
+    #       scope: punctuation.definition.string.end.looker
+    #       pop: true
 
     - match: '\%\}'
       scope: punctuation.terminator.liquid.looker
       pop: true
-
 
   liquid_variable:
     - clear_scopes: true
@@ -239,5 +298,3 @@ contexts:
     - match: '\}\}'
       scope: punctuation.terminator.liquid.looker
       pop: true
-
-
