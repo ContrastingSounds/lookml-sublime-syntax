@@ -9,6 +9,8 @@ file_extensions:
 scope: source.looker
 
 contexts:
+
+  # LOOKML
   main:
     - match: '#'
       scope: comment.looker
@@ -46,12 +48,7 @@ contexts:
         1: variable.parameter.looker
       push: url
 
-    - match: '\b(?!sql_table_name|sql_on|sql|html)([a-z0-9_]+)\b(: ?)([A-Za-z0-9_\-]+ ?)'
-      captures:
-        1: variable.parameter.looker
-        3: storage.type.looker
-
-    - match: '\b(?!sql_table_name|sql_on|sql|html)([a-z0-9_]+)\b(: ?)([A-Za-z0-9_\-]+ ?)'
+    - match: '\b([a-z0-9_]+)\b(: ?)([A-Za-z0-9_\-]+ ?)'
       captures:
         1: variable.parameter.looker
         3: storage.type.looker
@@ -139,12 +136,12 @@ contexts:
   # SQL
   sql:
     - clear_scopes: true
+    - meta_scope: string.sql.looker
     - include: variables
     - include: numbers
     - include: double_quoted_strings
     - include: single_quoted_strings
     - include: templates
-    - meta_scope: string.sql.looker
 
     - match: '\-\-'
       scope: comment.sql.looker
@@ -156,7 +153,7 @@ contexts:
     - match: (\-|\+|\*|\/|%\/%|%%|\^|\|\|)
       scope: keyword.operator.arithmetic.looker
 
-    - match: '(=|!=|<>|<|>|<=|>=|AND|OR|IS|NOT)'
+    - match: '\b(=|!=|<>|<|>|<=|>=|AND|OR|IS|NOT)\b'
       scope: keyword.operator.comparison.looker
 
     - match: '(?i)\b(SELECT|AS|FROM|WHERE|GROUP BY|ORDER BY|HAVING|LEFT|JOIN|ON)\b'
@@ -271,22 +268,6 @@ contexts:
 
     - include: double_quoted_strings
     - include: single_quoted_strings
-
-    # - match: '"'
-    #   scope: punctuation.definition.string.begin.looker
-    #   push:
-    #     - meta_scope: string.quoted.double.looker
-    #     - match: '"'
-    #       scope: punctuation.definition.string.end.looker
-    #       pop: true
-
-    # - match: "'"
-    #   scope: punctuation.definition.string.begin.looker
-    #   push:
-    #     - meta_scope: string.quoted.single.looker
-    #     - match: "'"
-    #       scope: punctuation.definition.string.end.looker
-    #       pop: true
 
     - match: '\%\}'
       scope: punctuation.terminator.liquid.looker
